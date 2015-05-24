@@ -1,0 +1,13 @@
+<ul style="margin-top:-16px;padding-top:0px;">
+    [% for(i in that){ %]
+        [% if(['that','tM'].indexOf(i) == -1){%]
+    <li style="margin-top:0px;padding-top:0px;"><b>[%= i %]</b>
+            [% if(typeof that[i] == 'object'){ %]
+                [%= tM.render('asList',that[i]) %]
+            [% }else{ %]
+                [%= that[i] %]
+            [% } %]
+        </li>
+        [% } %]
+    [% } %] 
+</ul>

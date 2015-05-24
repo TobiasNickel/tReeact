@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>tReeact</title>
+<script src="ejs.js"></script>
+<!-- <script src="tXml.js"></script> -->
+
+<script src="treeact.js"></script>
+<script>
+    // setting up the templateManager
+    var templateManager = new TemplateManager("EJS");
+    EJS.type = "[";
+    templateManager.fileExtension = 'ejs.html'
+    templateManager.basePath = "./templates";
+    templateManager.nameOfTemplatemanager = "tM";
+
+    var tReeAct; // will be the instance of TReeact
+    
+    // init after the document is loaded and body is available 
+    window.addEventListener("load", function () {
+        // create the tReeact
+        tReeAct = new TreeAct(document.body);
+        window.xml = templateManager.render("ejs/test", {
+            "name": "Tobias",
+            "age": 26,
+            pJSON:false
+        });
+        var c=0;
+        tReeAct.render(xml, function(){
+            // add some eventlistener to an element
+            document.getElementById('compileID').addEventListener('click', function(e){
+                e.target.style.backgroundColor = '#0099ff';
+                
+                // render some data
+                window.xml = templateManager.render("ejs/test", {
+                    "name": "Klaus "+c,
+                    "age": ++c,
+                    pJSON:{'look':', thisis', json:'data'}
+                });
+                tReeAct.render(xml)
+            })
+        });
+    });
+</script>
+</head>
+<body>
+</body>
+</html>

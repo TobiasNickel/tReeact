@@ -1,0 +1,13 @@
+<a href='index.html'>index</a>
+    <div>takes the two params age and name, the name is directly printed here: [%= name %].</div>
+    <div>This is a list of properties that all templateManager have. The sourcecode to create the List, demonstrates, that you can use pure Javascript inside the EJS templateengine.</div>
+    <ul>
+        [% for(var i in this.tM){ %]
+        <li id="[%= i %]ID">[%= i.toString() %]</li>
+        [% } %]
+    </ul>
+    <div>after that, a subtemplate is loaded and the input object is passed as data.</div>
+    <div>[%= tM.render("subtemplates/hallo",that) %]</div>
+
+<div>in the end we display some data using a recursive template</div><br>
+[%= tM.render('asList',pJSON||{a:'albert',b:'bert',c:{d:"dave",e:{tobias:'nickel'}},f:'fanni'})%]

@@ -1,0 +1,7 @@
+<div style="width:300px;padding:6px;background-color:lightgray;margin:2px;">
+    <h2>the hallo subTemplate</h2>
+    <div>we use age to show the age: [%= age    %]</div>
+    <div>and load then two more template. First the secondLevel/Hallo and then the firstLebel test2.html by usind "../test2"</div>
+    [%= tM.render("secondLevel/hallo") %]
+    [%= tM.render("../test2") %]
+</div>
