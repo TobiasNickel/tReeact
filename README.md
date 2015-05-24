@@ -20,3 +20,9 @@ For an example check out the the indexHTML it uses some ejs template to create t
 
 
 ** Mutation: a mutated view is an view element that was changed by some javascript, that is propably not representing the rendered data.
+
+
+
+Tobias Nickel  
+
+![alt text](https://avatars1.githubusercontent.com/u/4189801?s=150) 
