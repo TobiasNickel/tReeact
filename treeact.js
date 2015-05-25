@@ -14,133 +14,179 @@ function TOMObjToXML(b){function k(b){if(b)for(var h=0;h<b.length;h++)if("string
 /**
  *@author: Tobias Nickel
  *  Inspired by the awesome reactJS, I'd like to provide an alternative,
- *  that allowes you to use techniques, that you already use. 
+ *  that allowes you to use techniques, that you already use.
  *
  *  So, it is a module, that render your HTML to the dom and only updates the nessasary elements.
- *  it is so effective, that you can rerender your entire web-app each time, when data changes. 
+ *  it is so effective, that you can rerender your entire web-app each time, when data changes.
  *  your eventlistener keep available and you can even use css transition between one and a new rendering.
  */
-TreeAct = (function(){
-    var requestAnimationFrame = requestAnimationFrame || webkitRequestAnimationFrame || function(cb){setTimeout(cb,0);};
-    function TreeAct(root){
+TreeAct = (function() {
+    var requestAnimationFrame = requestAnimationFrame || webkitRequestAnimationFrame || function(cb) {
+            setTimeout(cb, 0);
+        };
+
+    function TreeAct(root) {
         this.root = root;
-        root.innerHTML='';
+        root.innerHTML = '';
         this.struct = [];
-        this.struct.ids={};
+        this.struct.ids = {};
     }
-    
-    var creator=document.createElement('div');
-    function getNode(xml){
+
+    var creator = document.createElement('div'); // used by getNode()
+    /**
+     *creates the DOM node of a tXml-node
+     */
+
+    function getNode(xml) {
         creator.innerHTML = TOMObjToXML(xml);
         return creator.firstChild;
     }
-    
-    function indexOfId(list,id){
-        for(var i = 0; i< list.length;i++){
-            if(list[i].attributes && list[i].attributes.id == id){
+
+    /**
+     * try to find the element with a given id in the attribute
+     * @param list {Array} the list to search in, often a tXML child-List
+     * @param id {string} the id of the searched element
+     */
+
+    function indexOfId(list, id) {
+        for (var i = 0; i < list.length; i++) {
+            if (list[i].attributes && list[i].attributes.id == id) {
                 return i;
             }
         }
         return -1;
-        
     }
-    
-    function updateChildren(xml, orgXml, root){
-        //root.innerHTML = '';
+
+
+    /**
+     * the core method of this framework. it is responsible for the reconsilation.
+     *
+     * this is a recursive method, that goes recursive trough the tree-structure of a Document.
+     * there are no tests, stop on circular structures, objects parsed by tXml are never circular as XML is.
+     *
+     * @param xml {tXml} tXml document, representing the new tree.
+     * @param oldXml {tXml} the old tXml-Document, the tree as is is currently displayed.
+     * @param root {DOM-node} the DOM-node, that is displaying the html.
+     */
+
+    function updateChildren(xml, orgXml, root) {
         if (!xml) {
             root.innerHTML = '';
             return;
         }
-        
-        var ids = {}; // id : xmlMapping (xml has node attribute): has indexAttribute, for the index in orgXml
+
         orgXml = orgXml || [];
         orgXml.ids = orgXml.ids || {};
-        
+
         //make sure, the nodes and objects are connected
-        if(orgXml[0] && !orgXml[0].node){
+        if (orgXml[0] && !orgXml[0].node) {
             var children = root.childNodes;
-            for(var i = 0; i < orgXml.length; i++ ){
-                if(typeof orgXml[i] == "string")orgXml[i] = [orgXml[i]];
+            for (var i = 0; i < orgXml.length; i++) {
+                if (typeof orgXml[i] == "string") orgXml[i] = [orgXml[i]];
                 orgXml[i].label = getNodeLabel(orgXml[i]);
                 orgXml[i].node = children[i];
-                if(orgXml[i].attributes && orgXml[i].attributes.id)
+                if (orgXml[i].attributes && orgXml[i].attributes.id)
                     orgXml.ids[orgXml[i].attributes.id] = orgXml[i]
             }
         }
-        var ids={};
-        //console.log(xml)
-        for(var i = 0; i < xml.length; i++) { 
-            if(typeof xml[i]=='string')xml[i]=[xml[i]];
+
+        var ids = {}; // id : xmlMapping (xml has node attribute): has indexAttribute, for the index in orgXml
+        // used to reuse the elements that have an ID.
+        for (var i = 0; i < xml.length; i++) {
+            if (typeof xml[i] == 'string') xml[i] = [xml[i]];
             var cXml = xml[i];
             cXml.label = getNodeLabel(cXml);
             cXml.index = i;
             if (!orgXml[i]) {
+                // nothing to compare with: create
                 cXml.node = getNode(cXml);
                 insertAt(root, cXml.node, i);
-            } else if(cXml.attributes && cXml.attributes.id){
+            } else if (cXml.attributes && cXml.attributes.id) {
                 // try to reuse & compare childs
-                var id=cXml.attributes.id;
+                //  elements that has an id
+                var id = cXml.attributes.id;
                 ids[cXml.attributes.id] = cXml;
                 // check for existence 
-                if(orgXml.ids[id]){
+                if (orgXml.ids[id]) {
                     // ensure position & compare childs
-                    moveElement(orgXml, orgXml.ids[id].index, id);
-                    updateNode(cXml,orgXml.ids[id]);
+                    if (id !== orgXml.ids[id].index)
+                        moveElement(orgXml, orgXml.ids[id].index, id);
+                    updateNode(cXml, orgXml.ids[id]);
                     updateChildren(cXml.children, orgXml.ids[id].children, orgXml.ids[id].node);
-                }else{
+                } else {
                     //exchange complete
                     var node = getNode(cXml);
-                    xml.node=node;
+                    xml.node = node;
                     root.insertBefore(node, orgXml[i].node);
                     orgXml[i].node.remove();
                 }
-            } else if(cXml.label == orgXml[i].label){
+            } else if (cXml.label == orgXml[i].label) {
                 //compare childs
-                updateNode(cXml,orgXml[i]);
+                updateNode(cXml, orgXml[i]);
                 updateChildren(cXml.children, orgXml[i].children, orgXml[i].node);
-            } else if(cXml[0]!==orgXml[i][0]){
+            } else if (cXml[0] !== orgXml[i][0]) {
                 //exchange complete
                 var node = getNode(cXml);
-                xml.node=node;
+                xml.node = node;
                 root.insertBefore(node, orgXml[i].node);
                 orgXml[i].node.remove();
             }
         }
-        for(; i < orgXml.length; i++) {
+        for (; i < orgXml.length; i++) {
             orgXml[i].node.remove();
         }
         xml.ids = ids;
     }
-    function updateNode(xml,org){
-        if(xml.tagName!==org.tagName)
+    /**
+     *updates the node, not its children
+     * means tagname and attributes
+     *@param xml {tXml}
+     *@param org {tXml} the old and currently displayed node. the org is containing the belonging DOM node
+     */
+
+    function updateNode(xml, org) {
+        if (xml.tagName !== org.tagName)
             org.node.tagName = xml.tagName;
-        
-        for(var i in xml.attributes){
-            if(org.attributes[i]){
-                if(xml.attributes[i] !== org.attributes[i])
+
+        for (var i in xml.attributes) {
+            if (org.attributes[i]) {
+                if (xml.attributes[i] !== org.attributes[i])
                     org.node.setAttribute(i, xml.attributes[i]);
                 delete org.attributes[i];
             }
         }
-        for(var i in org.attributes){
+        for (var i in org.attributes) {
             org.node.removeAttribute(i);
         }
     }
-    
-    function getNodeLabel(node){
-        if(!node.tagName) return node[0];
-        if(!node.attributes) return node.tagname;
+
+    /**
+     * returns a label of the given tXML-node
+     * it is in the format of "tagname#id.class"
+     * where only the fist class is used.
+     * That let the app-developer toggle a class
+     * without recreating the element.
+     *
+     *@param node {tXml}
+     */
+
+    function getNodeLabel(node) {
+        if (!node.tagName) return node[0];
+        if (!node.attributes) return node.tagname;
         var id = node.attributes.id ? "#" + node.attributes.id : "";
         var classname = node.attributes['class'] ? ":" + node.attributes['class'].split(" ")[0] : "";
-        return node.tagName+id+classname;
+        return node.tagName + id + classname;
     }
-    
-    
-    function insertAt(root,element,id){
-        var child= root.childNodes[id];
-        if(child){
+
+    /**
+     *insert an element at the position i of root's children
+     */
+
+    function insertAt(root, element, i) {
+        var child = root.childNodes[i];
+        if (child) {
             root.insertBefore(element, child);
-        }else{
+        } else {
             root.appendChild(element);
         }
     }
@@ -149,41 +195,24 @@ TreeAct = (function(){
      *@param from {int}
      *@param to {int}
      */
-    function moveElement(arr, from, to){
-        if(from == to)return;
-        arr.splice(to,0,arr.splice(from,1)[0])
+
+    function moveElement(arr, from, to) {
+        if (from == to) return;
+        arr.splice(to, 0, arr.splice(from, 1)[0])
     }
     /**
-     *@param xml {xml-string} 
+     *@param xml {xml-string}
      *@param doneCB {function} method that will be called, after all elements are attached to the DOM
      */
-    TreeAct.prototype.render = function(xml ,doneCB){
-        if(typeof xml == 'string') xml = tXml(xml);
+    TreeAct.prototype.render = function(xml, doneCB) {
+        if (typeof xml == 'string') xml = tXml(xml);
         var that = this;
-        requestAnimationFrame(function(){
+        requestAnimationFrame(function() {
             updateChildren(xml, that.struct, that.root);
             that.struct = xml;
-            if(doneCB) doneCB();
+            if (doneCB) doneCB();
         });
     };
     return TreeAct;
 })()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
