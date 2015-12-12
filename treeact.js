@@ -11,6 +11,7 @@ e&&34!==e;)a++,e=b.charCodeAt(a);var e=b[a],m=++a;a=b.indexOf(e,m);e=b.slice(m,a
 function c(){for(var c=a;-1===g.indexOf(b[a]);)a++;return b.slice(c,a)}var g="\n\t>/= ",h=["img","br","input"],a=0;return k()}
 function TOMObjToXML(b){function k(b){if(b)for(var h=0;h<b.length;h++)if("string"==typeof b[h])c+=b[h].trim();else{var a=b[h];c+="<"+a.tagName;var f=void 0;for(f in a.attributes)c=-1===a.attributes[f].indexOf('"')?c+(" "+f+'="'+a.attributes[f].trim()+'"'):c+(" "+f+"='"+a.attributes[f].trim()+"'");c+=">";k(a.children);c+="</"+a.tagName+">"}}var c="";Array.isArray(b)||(b=[b]);k(b);return c};
 
+
 /**
  *@author: Tobias Nickel
  *  Inspired by the awesome reactJS, I'd like to provide an alternative,
@@ -21,25 +22,41 @@ function TOMObjToXML(b){function k(b){if(b)for(var h=0;h<b.length;h++)if("string
  *  your eventlistener keep available and you can even use css transition between one and a new rendering.
  */
 TreeAct = (function() {
-    var requestAnimationFrame = requestAnimationFrame || webkitRequestAnimationFrame || function(cb) {
-            setTimeout(cb, 0);
-        };
+    var requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || function(cb) {
+      setTimeout(cb, 0);
+    };
 
     function TreeAct(root) {
-        this.root = root;
-        root.innerHTML = '';
-        this.struct = [];
-        this.struct.ids = {};
+      this.root = root;
+      root.innerHTML = '';
+      this.struct = '';
+      this.struct.ids = {};
+      this.components = {};
     }
+
+
 
     var creator = document.createElement('div'); // used by getNode()
     /**
      *creates the DOM node of a tXml-node
      */
-
     function getNode(xml) {
         creator.innerHTML = TOMObjToXML(xml);
         return creator.firstChild;
+    }
+
+    function createRootNode(txmlNode){
+        if(Array.isArray(txmlNode)){
+          return getNode(txmlNode);
+        }
+        var root = document.createElement(txmlNode.tagName);
+        var attr = txmlNode.attributes;
+        if(attr){
+          for(var i in attr){
+            root.setAttribute(i, attr[i]);
+          }
+        }
+        return root;
     }
 
     /**
@@ -47,7 +64,6 @@ TreeAct = (function() {
      * @param list {Array} the list to search in, often a tXML child-List
      * @param id {string} the id of the searched element
      */
-
     function indexOfId(list, id) {
         for (var i = 0; i < list.length; i++) {
             if (list[i].attributes && list[i].attributes.id == id) {
@@ -68,8 +84,7 @@ TreeAct = (function() {
      * @param oldXml {tXml} the old tXml-Document, the tree as is is currently displayed.
      * @param root {DOM-node} the DOM-node, that is displaying the html.
      */
-
-    function updateChildren(xml, orgXml, root) {
+    function updateChildren(xml, orgXml, root, tReeAct) {
         if (!xml) {
             root.innerHTML = '';
             return;
@@ -99,20 +114,28 @@ TreeAct = (function() {
             cXml.index = i;
             if (!orgXml[i]) {
                 // nothing to compare with: create
-                cXml.node = getNode(cXml);
+                cXml.node = createRootNode(cXml);
                 insertAt(root, cXml.node, i);
+
+                if(cXml.attributes && cXml.attributes.component) {
+                  var Component = tReeAct.components[cXml.attributes.component];
+                  cXml.component = new Component(node, tReeAct);
+                }
+                updateChildren(cXml.children, '', cXml.node, tReeAct);
+                if(cXml.component) cXml.component.didRender(cXml.node, tReeAct);
+                if (cXml.attributes && cXml.attributes.id) ids[cXml.attributes.id] = cXml;
             } else if (cXml.attributes && cXml.attributes.id) {
                 // try to reuse & compare childs
                 //  elements that has an id
                 var id = cXml.attributes.id;
                 ids[cXml.attributes.id] = cXml;
-                // check for existence 
+                // check for existence
                 if (orgXml.ids[id]) {
                     // ensure position & compare childs
                     if (id !== orgXml.ids[id].index)
                         moveElement(orgXml, orgXml.ids[id].index, id);
                     updateNode(cXml, orgXml.ids[id]);
-                    updateChildren(cXml.children, orgXml.ids[id].children, orgXml.ids[id].node);
+                    updateChildren(cXml.children, orgXml.ids[id].children, orgXml.ids[id].node, tReeAct);
                 } else {
                     //exchange complete
                     var node = getNode(cXml);
@@ -123,13 +146,15 @@ TreeAct = (function() {
             } else if (cXml.label == orgXml[i].label) {
                 //compare childs
                 updateNode(cXml, orgXml[i]);
-                updateChildren(cXml.children, orgXml[i].children, orgXml[i].node);
+                updateChildren(cXml.children, orgXml[i].children, orgXml[i].node, tReeAct);
+
             } else if (cXml[0] !== orgXml[i][0]) {
                 //exchange complete
                 var node = getNode(cXml);
                 xml.node = node;
                 root.insertBefore(node, orgXml[i].node);
                 orgXml[i].node.remove();
+
             }
         }
         for (; i < orgXml.length; i++) {
@@ -137,13 +162,13 @@ TreeAct = (function() {
         }
         xml.ids = ids;
     }
+
     /**
      *updates the node, not its children
      * means tagname and attributes
      *@param xml {tXml}
      *@param org {tXml} the old and currently displayed node. the org is containing the belonging DOM node
      */
-
     function updateNode(xml, org) {
         if (xml.tagName !== org.tagName)
             org.node.tagName = xml.tagName;
@@ -160,6 +185,7 @@ TreeAct = (function() {
         }
     }
 
+
     /**
      * returns a label of the given tXML-node
      * it is in the format of "tagname#id.class"
@@ -169,7 +195,6 @@ TreeAct = (function() {
      *
      *@param node {tXml}
      */
-
     function getNodeLabel(node) {
         if (!node.tagName) return node[0];
         if (!node.attributes) return node.tagname;
@@ -181,7 +206,6 @@ TreeAct = (function() {
     /**
      *insert an element at the position i of root's children
      */
-
     function insertAt(root, element, i) {
         var child = root.childNodes[i];
         if (child) {
@@ -195,7 +219,6 @@ TreeAct = (function() {
      *@param from {int}
      *@param to {int}
      */
-
     function moveElement(arr, from, to) {
         if (from == to) return;
         arr.splice(to, 0, arr.splice(from, 1)[0])
@@ -208,11 +231,17 @@ TreeAct = (function() {
         if (typeof xml == 'string') xml = tXml(xml);
         var that = this;
         requestAnimationFrame(function() {
-            updateChildren(xml, that.struct, that.root);
+            updateChildren(xml, that.struct, that.root, that);
             that.struct = xml;
             if (doneCB) doneCB();
         });
     };
+
+   TreeAct.prototype.addComponent = function(name, thePrototype) {
+     this.components[name]=function(el,tReeAct){
+       this.init(el, tReeAct);
+     }
+     this.components[name].prototype = thePrototype;
+   };
     return TreeAct;
 })()
-

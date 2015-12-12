@@ -6,13 +6,15 @@ With tReeact I have developed a framework, that is inspired by facebooks reactJS
 
 Description
 -----------
-With tReeact I provide a framework, that allowes you like react, developing your app, in that way. Further more I will discribe how I provide that functionality. If you want to compare to react, check out reactjs.github.com. 
+With tReeact I provide a framework, that allowes you like react, developing your app, in that way. Further more I will discribe how I provide that functionality. If you want to compare to react, check out reactjs.github.com.
 
-I want the developer to use same technologies that are already well tested and used in production. There templating-languages. In January I wrote an TemplateManager, that makes it even more handy to work with templates ever before. Using the templating-engines the developer generates HTML that is representing the view, that is rendered on the screen. The simplest way could be to append that HTML to some innerHTML inside the DOM. With that you re-render the entire page and loose all eventlistener and all changes you made manually (mutations). 
+I want the developer to use same technologies that are already well tested and used in production. There templating-languages. In January I wrote an TemplateManager, that makes it even more handy to work with templates ever before. Using the templating-engines the developer generates HTML that is representing the view, that is rendered on the screen. The simplest way could be to append that HTML to some innerHTML inside the DOM. With that you re-render the entire page and loose all eventlistener and all changes you made manually (mutations).
 
-Facebooks React as well as tReeact provide a smarter way. You render the entire page how his should look at the current moment. The Framework then compares the new view and the last rendered view and applies a minimal set of changes on the DOM. To do so, the HTMLstructure is seed as a data-tree and these trees are compared. tReeact is parsing the HTML string into some XML-DOM object and compares it with a previous rendering. 
+Facebooks React as well as tReeact provide a smarter way to render the entire page how his should look at the current moment. The Framework then compares the new view and the last rendered view and applies a minimal set of changes on the DOM. To do so, the HTMLstructure is seen as a data-tree (virtual DOM) and these trees are compared. tReeact is parsing the HTML string into some XML-DOM object and compares it with a previous rendering.
 
 With that approach your eventlistener and other changes on a DOM-node keep avalable. And even if you have a node with an ID, you can append it to an other position, while keeping the listener.
+
+After a while of thinking how to attach organize the event-handling, I developed a component model, based on a new introduced html-attribute called "component" naming a component by a name, that is registered on the rendering tReeact instance. This approach was inspired by the Vue.JS framework.
 
 Code Examles
 ------------
@@ -25,4 +27,4 @@ For an example check out the the indexHTML it uses some ejs template to create t
 
 Tobias Nickel  
 
-![alt text](https://avatars1.githubusercontent.com/u/4189801?s=150) 
+![alt text](https://avatars1.githubusercontent.com/u/4189801?s=150)
