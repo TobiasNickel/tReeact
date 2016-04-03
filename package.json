@@ -1,0 +1,25 @@
+{
+  "name": "treeact",
+  "version": "1.0.0",
+  "description": "Delclarative UI with free choice of Template-Engine, super fast and support for components and unopinioned server-side renderings.",
+  "main": "treeact.js",
+  "scripts": {
+    "test": "firefox templates/ejs/test.ejs.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TobiasNickel/tReeact.git"
+  },
+  "keywords": [
+    "Reactive",
+    "reconsilation",
+    "templateEngines",
+    "declarativeUI"
+  ],
+  "author": "Tobias Nickel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TobiasNickel/tReeact/issues"
+  },
+  "homepage": "https://github.com/TobiasNickel/tReeact#readme"
+}
