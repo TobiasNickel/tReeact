@@ -120,7 +120,7 @@ var TreeAct = (function() {
                 insertAt(root, cXml.node, i);
 
                 if(cXml.attributes && cXml.attributes.component) {
-                  cXml.componentt = tReeAct.components[cXml.attributes.component](cXml.node, tReeAct);
+                  cXml.component = tReeAct.components[cXml.attributes.component](cXml.node, tReeAct);
                 }
                 updateChildren(cXml.children, '', cXml.node, tReeAct);
                 if(cXml.component && cXml.component.didRender) cXml.component.didRender(cXml.node, tReeAct);
@@ -148,12 +148,18 @@ var TreeAct = (function() {
                 //compare childs
                 updateNode(cXml, orgXml[i]);
                 updateChildren(cXml.children, orgXml[i].children, orgXml[i].node, tReeAct);
-            } else if (cXml[i] !== orgXml[i][0]) {
+            } else if (cXml[i] !== orgXml[i][0] || cXml.tagName !== orgXml[0].tagName || getComponent(cXml) !== getComponent(orgXml[0])) {
                 //exchange complete
                 cXml.node = createRootNode(cXml);;
                 root.insertBefore(cXml.node, orgXml[i].node);
                 orgXml[i].node.remove();
-                updateChildren(cXml.children, [], cXml.node, tReeAct);
+
+                if(cXml.attributes && cXml.attributes.component) {
+                  cXml.component = tReeAct.components[cXml.attributes.component](cXml.node, tReeAct);
+                }
+                updateChildren(cXml.children, '', cXml.node, tReeAct);
+                if(cXml.component && cXml.component.didRender) cXml.component.didRender(cXml.node, tReeAct);
+                if (cXml.attributes && cXml.attributes.id) ids[cXml.attributes.id] = cXml;
             }else{
                 //compare childs
                 updateNode(cXml, orgXml[i]);
@@ -164,6 +170,11 @@ var TreeAct = (function() {
             orgXml[i].node.remove();
         }
         xml.ids = ids;
+    }
+
+    function getComponent(xmlNode){
+        if(!xmlNode.attributes) return;
+        return xmlNode.attributes.component
     }
 
     /**
@@ -200,10 +211,11 @@ var TreeAct = (function() {
      */
     function getNodeLabel(node) {
         if (!node.tagName) return node[0];
-        if (!node.attributes) return node.tagname;
+        if (!node.attributes) return node.tagNlame;
         var id = node.attributes.id ? "#" + node.attributes.id : "";
         var classname = node.attributes['class'] ? ":" + node.attributes['class'].split(" ")[0] : "";
-        return node.tagName + id + classname;
+        var componentName = node.attributes.component ? '('+node.attributes.component+')' : ''
+        return node.tagName + id + classname + componentName;
     }
 
     /**
