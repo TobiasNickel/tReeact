@@ -210,8 +210,8 @@ var TreeAct = (function() {
      *@param node {tXml}
      */
     function getNodeLabel(node) {
-        if (!node.tagName) return node[0];
-        if (!node.attributes) return node.tagNlame;
+        if (!node.tagName) return 'string::'+node[0];
+        if (!node.attributes) return node.tagName;
         var id = node.attributes.id ? "#" + node.attributes.id : "";
         var classname = node.attributes['class'] ? ":" + node.attributes['class'].split(" ")[0] : "";
         var componentName = node.attributes.component ? '('+node.attributes.component+')' : ''

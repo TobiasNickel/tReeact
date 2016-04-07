@@ -1,6 +1,6 @@
 {
   "name": "treeact",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Delclarative UI with free choice of Template-Engine, super fast and support for components and unopinioned server-side renderings.",
   "main": "treeact.js",
   "scripts": {
